@@ -1,18 +1,10 @@
 import tkinter as tk
 from pynput import keyboard
-from difflib import get_close_matches
 
-# Dummy dictionary (replace/expand as needed)
-DICTIONARY = ['hello', 'help', 'helicopter', 'her', 'hero', 'heritage', 'hey', 'high', 'how', 'house']
+from logic import get_suggestions
 
 # Rolling input buffer
 input_buffer = ''
-
-# Suggestion logic
-def get_suggestions(prefix):
-    if not prefix:
-        return []
-    return get_close_matches(prefix, DICTIONARY, n=5, cutoff=0.3)
 
 # Tkinter UI setup
 root = tk.Tk()
@@ -39,7 +31,7 @@ def on_press(key):
         if key.char.isalnum():
             input_buffer += key.char
         elif key.char == ' ':
-            input_buffer = ''  # Reset on space
+            input_buffer = ''  # Reset on space //need to implement caching
     except AttributeError:
         if key == keyboard.Key.backspace:
             input_buffer = input_buffer[:-1]
