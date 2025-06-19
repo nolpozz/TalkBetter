@@ -36,7 +36,7 @@ def on_press(key):
         if key == keyboard.Key.backspace:
             input_buffer = input_buffer[:-1]
         elif key == keyboard.Key.space:
-            input_buffer = ''
+            input_buffer = ' '
         elif key == keyboard.Key.enter:
             input_buffer = ''
         else:
