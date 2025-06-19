@@ -18,13 +18,16 @@ root.withdraw()  # Hide initially
 # Update UI with new suggestions
 def update_suggestions():
     suggestions = get_suggestions(input_buffer)
+    print(suggestions)
     if suggestions:
-        label.config(text="\n".join(suggestions))
+        formatted = [f"{word} ({score:.2f})" for word, score in suggestions]
+        label.config(text="\n".join(formatted))
         root.deiconify()
     else:
         root.withdraw()
 
-# Keyboard event handler
+
+# Keyboard event handler  hello
 def on_press(key):
     global input_buffer
     try:

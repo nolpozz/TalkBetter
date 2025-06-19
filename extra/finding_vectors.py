@@ -1,25 +1,28 @@
+import os
+import joblib
+import numpy as np
 import nltk
 from nltk.corpus import wordnet as wn
-import numpy as np
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
 # Download WordNet resources
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 
-# Load embedding model
+# Path to project root (2 levels up from this file)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+CACHE_DIR = os.path.join(PROJECT_ROOT, "cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+
+# Define where to save the file
+FORMALITY_AXIS_PATH = os.path.join(CACHE_DIR, "formality_axis.pkl")
+
+# Load model (not cached, loaded fresh each time)
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Your high-register word list
-high_register_words = [
-    "pugilistic", "besotted", "filched", "querulous", "abet", "ignominious",
-    "effulgent", "perfidious", "cacophony", "obsequious", "vociferous",
-    "perspicacious", "vicissitude", "recalcitrant", "penurious", "lachrymose"
-]
-
-# Formality axis construction
-formal_words = ["assist", "reside", "depart", "arrive", "permit", 
+# Your formality axis construction (just an example)
+def get_formality_axis():
+    formal_words = ["assist", "reside", "depart", "arrive", "permit", 
                 "acquire", "consume", "investigate", "respond", 
                 "disclose", "construct", "reject", "delay", "commence", 
                 "purchase", "inform", "endeavor", "request", "cease", 
@@ -30,7 +33,7 @@ formal_words = ["assist", "reside", "depart", "arrive", "permit",
                 "appear", "ascertain", "consult", "prohibit", "discontinue", 
                 "observe", "function", "implement", "initiate", "maintain", 
                 "notify", "predict"]
-informal_words = ["help", "live", "leave", "show up", "let", 
+    informal_words = ["help", "live", "leave", "show up", "let", 
  "get", "eat", "look into", "reply", "tell", 
  "build", "turndown", "hold off", "start", 
  "buy", "tell", "try", "ask for", "stop", 
@@ -41,16 +44,14 @@ informal_words = ["help", "live", "leave", "show up", "let",
  "run", "keep", "show up", "find out", "ask", 
  "ban", "quit", "see", "work", "carry out", 
  "start", "keep up", "let know", "guess"]
-
-def get_formality_axis():
     formal_vec = np.mean(model.encode(formal_words), axis=0)
     informal_vec = np.mean(model.encode(informal_words), axis=0)
-    formality_axis = formal_vec - informal_vec
-    return formality_axis
+    return formal_vec - informal_vec
 
-formal_vec = np.mean(model.encode(formal_words), axis=0)
-informal_vec = np.mean(model.encode(informal_words), axis=0)
-formality_axis = formal_vec - informal_vec
+# Save the axis if needed
+if not os.path.exists(FORMALITY_AXIS_PATH):
+    formality_axis = get_formality_axis()
+    joblib.dump(formality_axis, FORMALITY_AXIS_PATH)
 
 # # Synonym fetch function
 def get_synonyms(word):
@@ -62,20 +63,3 @@ def get_synonyms(word):
                 synonyms.add(name)
     return list(synonyms)
 
-# Score synonyms by formality
-simpler_synonyms = {}
-for word in high_register_words:
-    syns = get_synonyms(word)
-    if not syns:
-        continue
-    candidates = [word] + syns
-    embeddings = model.encode(candidates)
-    scores = cosine_similarity(embeddings, [formality_axis]).flatten()
-    ranked = sorted(zip(candidates, scores), key=lambda x: x[1])  # lowest = least formal
-    simpler_synonyms[word] = ranked[:5]  # top 5 simpler
-
-# Print results
-for word, alternatives in simpler_synonyms.items():
-    print(f"\n{word.upper()}:")
-    for alt, score in alternatives:
-        print(f"  {alt:20s} score={score:.3f}")
