@@ -1,10 +1,8 @@
 from difflib import get_close_matches
 import nltk
 from nltk.corpus import wordnet as wn
-import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from extra.finding_vectors import get_formality_axis
 import os
 import joblib
 
@@ -33,7 +31,7 @@ formality_axis = joblib.load(FORMALITY_AXIS_PATH)
 def get_synonyms(word):
     print(word)
     if not word:
-        return ["waiting"]
+        raise Exception("synonym of  does not exist")
     synonyms = set()
     for syn in wn.synsets(word):
         for lemma in syn.lemmas():
@@ -44,11 +42,12 @@ def get_synonyms(word):
 
 # Suggestion logic
 def get_suggestions(prefix):
+    if prefix is None:
+        return ["waiting"]
     syns = get_synonyms(prefix)
     if not syns:
         return []
-        # raise Exception("no synonyms")
-    candidates = [prefix] + syns
+    candidates = [] + syns
     embeddings = model.encode(candidates)
     scores = cosine_similarity(embeddings, [formality_axis]).flatten()
     ranked = sorted(zip(candidates, scores), key=lambda x: x[1])  # lowest = least formal

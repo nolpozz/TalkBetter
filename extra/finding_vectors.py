@@ -53,13 +53,4 @@ if not os.path.exists(FORMALITY_AXIS_PATH):
     formality_axis = get_formality_axis()
     joblib.dump(formality_axis, FORMALITY_AXIS_PATH)
 
-# # Synonym fetch function
-def get_synonyms(word):
-    synonyms = set()
-    for syn in wn.synsets(word):
-        for lemma in syn.lemmas():
-            name = lemma.name().replace("_", " ").lower()
-            if name != word:
-                synonyms.add(name)
-    return list(synonyms)
 
