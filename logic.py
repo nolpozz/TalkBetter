@@ -44,11 +44,10 @@ def get_synonyms(word):
 
 # Suggestion logic
 def get_suggestions(prefix):
-    if not prefix:
-        return []
     syns = get_synonyms(prefix)
     if not syns:
-        raise Exception("no synonyms")
+        return []
+        # raise Exception("no synonyms")
     candidates = [prefix] + syns
     embeddings = model.encode(candidates)
     scores = cosine_similarity(embeddings, [formality_axis]).flatten()

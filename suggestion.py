@@ -18,7 +18,6 @@ root.withdraw()  # Hide initially
 # Update UI with new suggestions
 def update_suggestions():
     suggestions = get_suggestions(input_buffer)
-    print(suggestions)
     if suggestions:
         formatted = [f"{word} ({score:.2f})" for word, score in suggestions]
         label.config(text="\n".join(formatted))
@@ -37,7 +36,10 @@ def on_press(key):
             input_buffer = ''  # Reset on space //need to implement caching
     except AttributeError:
         if key == keyboard.Key.backspace:
-            input_buffer = input_buffer[:-1]
+            if(input_buffer):
+                input_buffer = input_buffer[:-1]
+            else:
+                input_buffer = ''
         elif key == keyboard.Key.space:
             input_buffer = ' '
         elif key == keyboard.Key.enter:
@@ -47,7 +49,7 @@ def on_press(key):
 
     update_suggestions()
 
-# Start keyboard listener in background
+# Start keyboard listener in background wh
 listener = keyboard.Listener(on_press=on_press)
 listener.start()
 
