@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import os
 import joblib
+import matplotlib.pyplot as plt
 
 
 # Dummy dictionary (replace/expand as needed)
@@ -31,7 +32,7 @@ formality_axis = joblib.load(FORMALITY_AXIS_PATH)
 def get_synonyms(word):
     print(word)
     if not word:
-        raise Exception("synonym of  does not exist")
+        return ["waiting"]
     synonyms = set()
     for syn in wn.synsets(word):
         for lemma in syn.lemmas():
@@ -52,3 +53,35 @@ def get_suggestions(prefix):
     scores = cosine_similarity(embeddings, [formality_axis]).flatten()
     ranked = sorted(zip(candidates, scores), key=lambda x: x[1])  # lowest = least formal
     return ranked[:5]
+
+def get_word_score(word):
+    if word is None:
+        return None
+    embedding = model.encode(word)
+    score = cosine_similarity([embedding], [formality_axis]).flatten()
+    return float(score)
+
+
+def display_formality_axis():
+    test_words = [
+    "commence", "initiate", "begin", "start", "kick off",
+    "utilize", "employ", "use", "grab", "snag",
+    "subsequently", "afterward", "then", "later", "next",
+    "notwithstanding", "however", "but", "though", "still"
+]
+    test_embeddings = model.encode(test_words)
+    test_scores = cosine_similarity(test_embeddings, [formality_axis]).flatten()
+    
+    plt.figure(figsize=(12, 8))
+    plt.scatter(range(len(test_words)), test_scores)
+
+    for i, word in enumerate(test_words):
+        plt.annotate(word, (i, test_scores[i]), textcoords="offset points", xytext=(0,10), ha='center')
+
+    plt.axhline(y=0, color='r', linestyle='--')
+
+    plt.xlabel("Word Index")
+    plt.ylabel("Formality Score")
+    plt.title("Formality Scores of Test Words")
+    plt.grid(True)
+    plt.show()
